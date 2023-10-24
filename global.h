@@ -19,4 +19,5 @@ struct Header
 struct Footer
 {
 	int reserved;
+	int checkValue;
 };

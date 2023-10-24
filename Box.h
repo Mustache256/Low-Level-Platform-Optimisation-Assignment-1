@@ -4,6 +4,9 @@
 class Box
 {
 public:
+	Box() {};
+	~Box() {};
+
 	Vector3 position;
 	Vector3 size;
 	Vector3 velocity;

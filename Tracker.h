@@ -2,10 +2,13 @@
 class Tracker
 {
 public:
-	void AddBytesAllocated(size_t numberOfBytes);
-	void RemoveBytesAllocated(size_t numberOfBytes);
-	size_t GetTotalBytesAllocated();
+	Tracker();
+	~Tracker();
+	static void AddBytesAllocated(size_t numberOfBytes);
+	static void RemoveBytesAllocated(size_t numberOfBytes);
+	static size_t GetTotalBytesAllocated();
+
 private:
-	size_t totalBytesUsed;
+	static size_t totalBytesUsed;
 };
 

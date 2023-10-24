@@ -1,5 +1,15 @@
 #include "Tracker.h"
 
+Tracker::Tracker()
+{
+
+}
+
+Tracker::~Tracker()
+{
+
+}
+
 void Tracker::AddBytesAllocated(size_t numberOfBytes)
 {
 	totalBytesUsed += numberOfBytes;

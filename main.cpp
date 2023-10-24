@@ -8,6 +8,7 @@
 #include <ctime>
 #include <chrono>
 
+#include "Tracker.h";
 #include "global.h"
 #include "Vector3.h"
 #include "Box.h"
