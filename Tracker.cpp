@@ -1,5 +1,7 @@
 #include "Tracker.h"
 
+size_t Tracker::totalBytesUsed;
+
 Tracker::Tracker()
 {
 

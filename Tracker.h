@@ -10,5 +10,6 @@ public:
 
 private:
 	static size_t totalBytesUsed;
+
 };
 

@@ -12,8 +12,8 @@ struct Header
 	int size;
 	int checkValue;
 	Tracker* pTracker;
-	Header* pNext;
-	Header* pPrev;
+	Header* pNextHeader;
+	Header* pPrevHeader;
 };
 
 struct Footer

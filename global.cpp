@@ -8,40 +8,39 @@ using namespace std;
 void* operator new(size_t size)
 {
 	cout << "global new being used\n";
-	size_t nRequestedBytes = size + sizeof(Header) + sizeof(Footer);
-	Tracker::AddBytesAllocated(nRequestedBytes);
-	char* pMem = (char*)malloc(nRequestedBytes);
+	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
+	
+	char* pMem = (char*)malloc(totalBytes);
 	Header* pHeader = (Header*)pMem;
+	void* pStartMemAlloced = pMem + sizeof(Header);
+	Footer* pFooter = (Footer*)(pMem + sizeof(Header) + size);
 
 	pHeader->size = size;
-	pHeader->checkValue = 0xDEADC0DE;
 	pHeader->pTracker = nullptr;
-
-	void* pFooterAddr = pMem + sizeof(Header) + size;
-	Footer* pFooter = (Footer*)pFooterAddr;
+	pHeader->checkValue = 0xDEADC0DE;
 
 	pFooter->checkValue = 0xDEADBEEF;
 
-	void* pStartMemBlock = pMem + sizeof(Header);
-	return pStartMemBlock;
+	Tracker::AddBytesAllocated(totalBytes);
+	return pStartMemAlloced;
 }
 
 void* operator new(size_t size, Tracker* pTracker)
 {
 	cout << "global new with tracker being used\n";
-	size_t nRequestedBytes = size + sizeof(Header) + sizeof(Footer);
-	pTracker->AddBytesAllocated(nRequestedBytes);
-	char* pMem = (char*)malloc(nRequestedBytes);
+	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
+	
+	
+	char* pMem = (char*)malloc(totalBytes);
 	Header* pHeader = (Header*)pMem;
-
+	void* pStartMemAlloced = pMem + sizeof(Header);
+	Footer* pFooter = (Footer*)(pMem + sizeof(Header) + size);
+	
 	pHeader->size = size;
 	pHeader->pTracker = pTracker;
 
-	void* pFooterAddr = pMem + sizeof(Header) + size;
-	Footer* pFooter = (Footer*)pFooterAddr;
-
-	void* pStartMemBlock = pMem + sizeof(Header);
-	return pStartMemBlock;
+	pTracker->AddBytesAllocated(totalBytes);
+	return pStartMemAlloced;
 }
 
 void operator delete(void* pMem)
@@ -55,9 +54,7 @@ void operator delete(void* pMem)
 	else
 	{
 		cout << "Header " << pHeader << " checkValue correct, freeing memory...\n";
-
-		if (pHeader->pTracker != nullptr)
-			pHeader->pTracker->RemoveBytesAllocated(sizeof(pHeader));
+		Tracker::RemoveBytesAllocated(sizeof(pHeader));
 
 		free(pHeader);
 	}
