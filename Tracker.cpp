@@ -1,31 +1,21 @@
 #include "Tracker.h"
 
-size_t Tracker::totalBytesUsed;
+size_t Tracker::bytesAlloced;
 Header* Tracker::pPrevHeader;
 
-Tracker::Tracker()
+void Tracker::AddBytesAllocated(size_t bytes)
 {
-
+	bytesAlloced += bytes;
 }
 
-Tracker::~Tracker()
+void Tracker::RemoveBytesAllocated(size_t bytes)
 {
-
+	bytesAlloced -= bytes;
 }
 
-void Tracker::AddBytesAllocated(size_t numberOfBytes)
+size_t Tracker::GetBytesAllocated()
 {
-	totalBytesUsed += numberOfBytes;
-}
-
-void Tracker::RemoveBytesAllocated(size_t numberOfBytes)
-{
-	totalBytesUsed -= numberOfBytes;
-}
-
-size_t Tracker::GetTotalBytesAllocated()
-{
-	return totalBytesUsed;
+	return bytesAlloced;
 }
 
 Header* Tracker::GetPreviousHeader()

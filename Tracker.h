@@ -4,16 +4,22 @@
 class Tracker
 {
 public:
-	Tracker();
-	~Tracker();
-	static void AddBytesAllocated(size_t numberOfBytes);
-	static void RemoveBytesAllocated(size_t numberOfBytes);
-	static size_t GetTotalBytesAllocated();
+	static void AddBytesAllocated(size_t bytes);
+	static void RemoveBytesAllocated(size_t bytes);
+	static size_t GetBytesAllocated();
+
 	static Header* GetPreviousHeader();
 	static void SetPreviousHeader(Header* pHeader);
 
+	static enum type
+	{
+		base,
+		box,
+		sound
+	};
+
 private:
-	static size_t totalBytesUsed;
+	static size_t bytesAlloced;
 	static Header* pPrevHeader;
 };
 

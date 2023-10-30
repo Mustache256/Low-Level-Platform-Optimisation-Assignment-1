@@ -9,6 +9,8 @@
 #include <chrono>
 
 #include "Tracker.h";
+#include "MemoryTracker.h"
+#include "BoxTracker.h"
 #include "global.h"
 #include "Vector3.h"
 #include "Box.h"
@@ -36,6 +38,8 @@ using namespace std::chrono;
 // gravity - change it and see what happens (usually negative!)
 const float gravity = -19.81f;
 std::vector<Box> boxes;
+
+
 
 void initScene(int boxCount) {
     for (int i = 0; i < boxCount; ++i) {
@@ -332,6 +336,8 @@ void keyboard(unsigned char key, int x, int y) {
 
 // the main function. 
 int main(int argc, char** argv) {
+
+
 
     srand(static_cast<unsigned>(time(0))); // Seed random number generator
     glutInit(&argc, argv);
