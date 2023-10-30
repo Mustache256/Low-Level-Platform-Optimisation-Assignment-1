@@ -1,6 +1,7 @@
 #include "Tracker.h"
 
 size_t Tracker::totalBytesUsed;
+Header* Tracker::pPrevHeader;
 
 Tracker::Tracker()
 {
@@ -25,4 +26,14 @@ void Tracker::RemoveBytesAllocated(size_t numberOfBytes)
 size_t Tracker::GetTotalBytesAllocated()
 {
 	return totalBytesUsed;
+}
+
+Header* Tracker::GetPreviousHeader()
+{
+	return pPrevHeader;
+}
+
+void Tracker::SetPreviousHeader(Header* pHeader)
+{
+	pPrevHeader = pHeader;
 }
