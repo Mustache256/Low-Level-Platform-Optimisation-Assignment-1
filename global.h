@@ -1,12 +1,11 @@
 #pragma once
 #include "Tracker.h"
-#include "MemoryTracker.h"
 
 struct Header
 {
-	int size;
+	size_t size;
 	int checkValue;
-	Tracker::type pTrackerType;
+	int type;
 	Header* pNextHeader;
 	Header* pPrevHeader;
 };
@@ -18,6 +17,8 @@ struct Footer
 };
 
 void* operator new(size_t size);
-//void* operator new(size_t size, Tracker* pTracker);
+void* operator new(size_t size, Tracker::Type type);
 
 void operator delete(void* pMem);
+
+void ConstructList(Header* pHeader);

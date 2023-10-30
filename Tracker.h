@@ -1,17 +1,26 @@
 #pragma once
+#include <iostream>
+#include <vector>
 #include "global.h"
+
+using namespace std;
 
 class Tracker
 {
 public:
-	static void AddBytesAllocated(size_t bytes);
-	static void RemoveBytesAllocated(size_t bytes);
-	static size_t GetBytesAllocated();
+	static void AddBytesAlloced(size_t bytes, Header* h);
+	static void RemoveBytesAlloced(size_t bytes, Header* h);
+	static size_t GetBytesAlloced(int type);
+	static size_t GetAllBytesAlloced();
 
 	static Header* GetPreviousHeader();
 	static void SetPreviousHeader(Header* pHeader);
+	static Header* GetFirstHeader();
+	static void SetFirstHeader(Header* pHeader);
 
-	static enum type
+	static void WalkTheHeap();
+
+	enum Type
 	{
 		base,
 		box,
@@ -19,7 +28,11 @@ public:
 	};
 
 private:
-	static size_t bytesAlloced;
+	static vector<size_t> bytesAlloced;
+	//static size_t baseBytesAlloced;
+	//static size_t boxBytesAlloced;
+	//static size_t soundBytesAlloced;
 	static Header* pPrevHeader;
+	static Header* pFirstHeader;
 };
 
