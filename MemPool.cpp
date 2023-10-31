@@ -1,7 +1,9 @@
 #include "MemPool.h"
 
-MemPool::MemPool(size_t objectSize)
+MemPool::MemPool(size_t objectSize, size_t poolSize)
 {
+	sliceSize = objectSize;
+
 
 }
 
