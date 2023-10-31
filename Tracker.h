@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include "global.h"
+#include "Common.h"
 
 using namespace std;
 
@@ -11,7 +11,6 @@ public:
 	static void AddBytesAlloced(size_t bytes, Header* h);
 	static void RemoveBytesAlloced(size_t bytes, Header* h);
 	static size_t GetBytesAlloced(int type);
-	static size_t GetAllBytesAlloced();
 
 	static Header* GetPreviousHeader();
 	static void SetPreviousHeader(Header* pHeader);
@@ -24,14 +23,12 @@ public:
 	{
 		base,
 		box,
-		sound
+		sound,
+		count
 	};
 
 private:
-	static vector<size_t> bytesAlloced;
-	//static size_t baseBytesAlloced;
-	//static size_t boxBytesAlloced;
-	//static size_t soundBytesAlloced;
+	static size_t bytesAlloced[count];
 	static Header* pPrevHeader;
 	static Header* pFirstHeader;
 };

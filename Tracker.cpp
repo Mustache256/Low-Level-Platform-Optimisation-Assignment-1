@@ -1,79 +1,31 @@
 #include "Tracker.h"
 
-vector<size_t> Tracker::bytesAlloced;
-//size_t Tracker::baseBytesAlloced;
-//size_t Tracker::boxBytesAlloced;
-//size_t Tracker::soundBytesAlloced;
+size_t Tracker::bytesAlloced[3];
 Header* Tracker::pPrevHeader;
 Header* Tracker::pFirstHeader;
 
 void Tracker::AddBytesAlloced(size_t bytes, Header* h)
 {
 	bytesAlloced[h->type] += bytes;
-	cout << "\nAdded " << bytes << " bytes to the " << h->type << " tracker total";
-
-	/*switch (h->type)
-	{
-	case base:
-		bytesAlloced[0] += bytes;
-		baseBytesAlloced += bytes;
-		cout << "\nAdded " << bytes << " bytes to the base tracker total";
-		break;
-	case box:
-		boxBytesAlloced += bytes;
-		cout << "\nAdded " << bytes << " bytes to the box tracker total";
-		break;
-	case sound:
-		soundBytesAlloced += bytes;
-		cout << "\nAdded " << bytes << " bytes to the sound tracker total";
-		break;
-	}*/
+	cout << "\nAdded " << bytes << " bytes to the " << h->type << " tracker total\n";
 }
 
 void Tracker::RemoveBytesAlloced(size_t bytes, Header* h)
 {
 	if ((bytesAlloced[h->type] - bytes) < 0)
 	{
-		cerr << "\nTrying to remove more memory from the " << h->type << " tracker and has been counted by that tracker";
+		cerr << "\nTrying to remove more memory from the " << h->type << " tracker and has been counted by that tracker\n";
 	}
 	else
 	{
 		bytesAlloced[h->type] += bytes;
-		cout << "\nRemoved " << bytes << " bytes from the " << h->type << " tracker total";
+		cout << "\nRemoved " << bytes << " bytes from the " << h->type << " tracker total\n";
 	}
-
-	/*switch (h->type)
-	{
-	case base:
-		baseBytesAlloced -= bytes;
-		cout << "\Removed " << bytes << " bytes from the base tracker total";
-		break;
-	case box:
-		boxBytesAlloced -= bytes;
-		cout << "\Removed " << bytes << " bytes from the box tracker total";
-		break;
-	case sound:
-		soundBytesAlloced -= bytes;
-		cout << "\Removed " << bytes << " bytes from the sound tracker total";
-		break;
-	}*/
 }
 
 size_t Tracker::GetBytesAlloced(int type)
 {
 	return bytesAlloced[type];
-}
-
-size_t Tracker::GetAllBytesAlloced()
-{
-	size_t total;
-
-	for (int i = 0; i < bytesAlloced.size(); i++)
-	{
-		total += bytesAlloced[i];
-	}
-
-	return total;
 }
 
 Header* Tracker::GetPreviousHeader()
@@ -98,29 +50,34 @@ void Tracker::SetFirstHeader(Header* pHeader)
 
 void Tracker::WalkTheHeap()
 {
+	chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+
 	Header* pHeader = Tracker::GetFirstHeader();
+
+	cout << "\n-------------\nWalking...\n";
 
 	if (pHeader == nullptr)
 	{
-		cerr << "\nPointer to first header in list is null, check pointer logic";
+		cerr << "\nPointer to first header in list is null, check pointer logic\n";
 		return;
 	}
 
 	while (pHeader != nullptr)
 	{
-		//cout << "\nChecking header for checkValue" << 0xDEADC0DE;
-
 		if (pHeader->checkValue == 0xDEADC0DE)
 		{
-			//cout << "\nHeader checkValue correct, continuing down list";
 			pHeader = pHeader->pNextHeader;
 		}
 		else
 		{
-			cerr << "\nIncorrect checkValue found for header address " << pHeader << ", something has gone wrong";
+			cerr << "\nIncorrect checkValue found for header address " << pHeader << ", something has gone wrong\n-------------\n";
 			return;
 		}
 	}
 
-	cout << "\nAll headers have correct checkValues, memory integrity maintained";
+	cout << "\nAll headers have correct checkValues, memory integrity maintained\n";
+
+	chrono::steady_clock::time_point end = chrono::steady_clock::now();
+
+	cout << "\nTook: " << chrono::duration_cast<chrono::microseconds>(end - begin).count() << " microseconds to walk\n-------------\n";
 }

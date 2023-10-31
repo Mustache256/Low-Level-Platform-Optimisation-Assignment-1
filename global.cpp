@@ -1,6 +1,4 @@
-#include <iostream>
-
-#include "global.h"
+#include "Global.h"
 
 using namespace std;
 
@@ -9,7 +7,7 @@ Header* pPrevHeader;
 //#ifdef DEBUG
 void* operator new(size_t size)
 {
-	cout << "global new being used\n";
+	cout << "\nGlobal new being used\n";
 	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
 	
 	char* pMem = (char*)malloc(totalBytes);
@@ -31,7 +29,7 @@ void* operator new(size_t size)
 
 void* operator new(size_t size, Tracker::Type type)
 {
-	cout << "global new being used\n";
+	cout << "\nGlobal new being used\n";
 	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
 
 	char* pMem = (char*)malloc(totalBytes);
@@ -53,7 +51,7 @@ void* operator new(size_t size, Tracker::Type type)
 
 void operator delete(void* pMem)
 {
-	cout << "global delete being used\n";
+	cout << "\nglobal delete being used\n";
 	Header* pHeader = (Header*)((char*)pMem - sizeof(Header));
 	Footer* pFooter = (Footer*)((char*)pMem + pHeader->size);
 
@@ -69,10 +67,10 @@ void operator delete(void* pMem)
 	}
 
 	if (pHeader->checkValue != 0xDEADC0DE)
-		cout << "Header checkValue does not match expected value for " << pHeader << ", something has gone wrong\n";
+		cout << "\nHeader checkValue does not match expected value for " << pHeader << ", something has gone wrong\n";
 	else
 	{
-		cout << "Header " << pHeader << " checkValue correct, freeing memory...\n";
+		cout << "\nHeader " << pHeader << " checkValue correct, freeing memory...\n";
 		Tracker::RemoveBytesAlloced(sizeof(pHeader), pHeader);
 
 		free(pHeader);
@@ -83,6 +81,7 @@ void ConstructList(Header* pHeader)
 {
 	if (Tracker::GetPreviousHeader() != nullptr)
 	{
+		pHeader->pNextHeader = nullptr;
 		pHeader->pPrevHeader = Tracker::GetPreviousHeader();
 		pHeader->pPrevHeader->pNextHeader = pHeader;
 		Tracker::SetPreviousHeader(pHeader);
@@ -90,6 +89,7 @@ void ConstructList(Header* pHeader)
 	else
 	{
 		pHeader->pPrevHeader = nullptr;
+		pHeader->pNextHeader = nullptr;
 		Tracker::SetPreviousHeader(pHeader);
 		Tracker::SetFirstHeader(pHeader);
 	}

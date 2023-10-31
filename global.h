@@ -1,20 +1,6 @@
 #pragma once
 #include "Tracker.h"
-
-struct Header
-{
-	size_t size;
-	int checkValue;
-	int type;
-	Header* pNextHeader;
-	Header* pPrevHeader;
-};
-
-struct Footer
-{
-	int reserved;
-	int checkValue;
-};
+#include "Common.h"
 
 void* operator new(size_t size);
 void* operator new(size_t size, Tracker::Type type);

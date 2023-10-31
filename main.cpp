@@ -9,7 +9,7 @@
 #include <chrono>
 
 #include "Tracker.h";
-#include "global.h"
+#include "Global.h"
 #include "Vector3.h"
 #include "Box.h"
 
@@ -327,6 +327,11 @@ void keyboard(unsigned char key, int x, int y) {
         for (Box& box : boxes) {
             box.velocity.y += impulseMagnitude;
         }
+    }
+
+    if (key == 'w')
+    {
+        Tracker::WalkTheHeap();
     }
 }
 

@@ -1,6 +1,6 @@
 #include "MemPool.h"
 
-MemPool::MemPool()
+MemPool::MemPool(size_t objectSize)
 {
 
 }
@@ -10,7 +10,7 @@ MemPool::~MemPool()
 
 }
 
-/*void* MemPool::Alloc(size_t size)
+void* MemPool::Alloc(size_t size)
 {
 	return nullptr;
 }
@@ -18,4 +18,4 @@ MemPool::~MemPool()
 void MemPool::Free(void* p, size_t size)
 {
 
-}*/
+}
