@@ -2,8 +2,6 @@
 
 using namespace std;
 
-Header* pPrevHeader;
-
 //#ifdef DEBUG
 void* operator new(size_t size)
 {
@@ -58,12 +56,19 @@ void operator delete(void* pMem)
 	if (pHeader->pPrevHeader != nullptr)
 	{
 		pHeader->pPrevHeader->pNextHeader = pHeader->pNextHeader;
-		pHeader->pNextHeader->pPrevHeader = pHeader->pPrevHeader;
+
+		if(pHeader->pNextHeader != nullptr)
+			pHeader->pNextHeader->pPrevHeader = pHeader->pPrevHeader;
 	}
 	else
 	{
-		pHeader->pNextHeader->pPrevHeader = nullptr;
-		Tracker::SetFirstHeader(pHeader->pNextHeader);
+		if (pHeader->pNextHeader != nullptr)
+		{
+			pHeader->pNextHeader->pPrevHeader = nullptr;
+			Tracker::SetFirstHeader(pHeader->pNextHeader);
+		}
+		else
+			Tracker::SetFirstHeader(nullptr);
 	}
 
 	if (pHeader->checkValue != 0xDEADC0DE)

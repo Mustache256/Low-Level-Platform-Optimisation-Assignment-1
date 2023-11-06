@@ -1,5 +1,7 @@
 #pragma once
 #include "Vector3.h"
+#include "Tracker.h"
+#include "global.h"
 
 class Box
 {
@@ -16,5 +18,7 @@ public:
 	void genRandVel(Box& box);
 	void genRandCol(Box& box);
 	void setBoxSize(Box& box, float x, float y, float z);
+
+	void* operator new(size_t size);
 };
 

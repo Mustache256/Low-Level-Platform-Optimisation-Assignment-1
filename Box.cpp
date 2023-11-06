@@ -24,3 +24,10 @@ void Box::setBoxSize(Box& box, float x, float y, float z)
 {
     box.size = { x, y, z };
 }
+
+void* Box::operator new(size_t size)
+{
+    return ::operator new(size, Tracker::Type::box);
+}
+
+

@@ -333,6 +333,11 @@ void keyboard(unsigned char key, int x, int y) {
     {
         Tracker::WalkTheHeap();
     }
+
+    if (key == 't')
+    {
+        Tracker::PrintAllBytesAlloced();
+    }
 }
 
 // the main function. 

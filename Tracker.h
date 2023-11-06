@@ -11,6 +11,7 @@ public:
 	static void AddBytesAlloced(size_t bytes, Header* h);
 	static void RemoveBytesAlloced(size_t bytes, Header* h);
 	static size_t GetBytesAlloced(int type);
+	static void PrintAllBytesAlloced();
 
 	static Header* GetPreviousHeader();
 	static void SetPreviousHeader(Header* pHeader);
@@ -23,7 +24,6 @@ public:
 	{
 		base,
 		box,
-		sound,
 		count
 	};
 

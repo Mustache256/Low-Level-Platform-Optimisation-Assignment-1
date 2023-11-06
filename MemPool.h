@@ -13,7 +13,7 @@ public:
 	void* Alloc(size_t size);
 	void Free(void* p, size_t size);
 
-	struct slice
+	struct Slice
 	{
 		void* startOfSlice;
 		bool inUse;
@@ -22,6 +22,6 @@ public:
 
 private:
 	size_t sliceSize;
-	vector<slice> slices;
+	vector<Slice> slices;
 };
 

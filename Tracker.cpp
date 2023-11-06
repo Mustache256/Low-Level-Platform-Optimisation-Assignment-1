@@ -1,6 +1,6 @@
 #include "Tracker.h"
 
-size_t Tracker::bytesAlloced[3];
+size_t Tracker::bytesAlloced[count];
 Header* Tracker::pPrevHeader;
 Header* Tracker::pFirstHeader;
 
@@ -26,6 +26,14 @@ void Tracker::RemoveBytesAlloced(size_t bytes, Header* h)
 size_t Tracker::GetBytesAlloced(int type)
 {
 	return bytesAlloced[type];
+}
+
+void Tracker::PrintAllBytesAlloced()
+{
+	cout << "\n-------------\n";
+	cout << "\nBase Bytes Allocated: " << bytesAlloced[base];
+	cout << "\nBox Bytes Allocated: " << bytesAlloced[box];
+	cout << "\n\n-------------\n";
 }
 
 Header* Tracker::GetPreviousHeader()
