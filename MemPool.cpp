@@ -5,26 +5,21 @@ MemPool::MemPool(size_t sizeOfSlice, int numOfSlices)
 	mNumOfSlices = numOfSlices;
 	mSizeOfSlice = sizeOfSlice;
 	
-	pMemStart = (unsigned char*)::operator new(sizeof(mSizeOfSlice * mNumOfSlices));
+	pMemStart = (char*)::operator new(sizeof(mSizeOfSlice * mNumOfSlices));
 
 	mNumSlicesInitialised = 0;
 	mNumFreeSlices = numOfSlices;
 	pNext = pMemStart;
 }
 
-MemPool::~MemPool()
-{
-	DeletePool();
-}
-
 char* MemPool::AddrFromIndex(int i) const
 {
-
+	return pMemStart + (i * mSizeOfSlice);
 }
 
 int MemPool::IndexFromAddr(const char* p) const
 {
-
+	return(((int)(p - pMemStart)) / mSizeOfSlice);
 }
 
 void* MemPool::Alloc()
@@ -61,8 +56,15 @@ void MemPool::Free(void* p)
 	if (pNext != NULL)
 	{
 		(*(int*)p) = IndexFromAddr(pNext);
-		pNext
+		pNext = (char*)p;
 	}
+	else
+	{
+		(*(int*)p) = IndexFromAddr(pNext);
+		pNext = (char*)p;
+	}
+
+	mNumFreeSlices++;
 }
 
 void MemPool::DeletePool()
