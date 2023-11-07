@@ -2,26 +2,34 @@
 #include <iostream>
 #include <vector>
 
+#include "Tracker.h"
+#include "Common.h"
+
 using namespace std;
 
 class MemPool
 {
 public:
-	MemPool(size_t objectSize, size_t poolSize);
-	~MemPool();
+	MemPool(size_t lSizeOfSlice, int lNumOfSlices);
+	~MemPool() { DeletePool(); };
 
-	void* Alloc(size_t size);
-	void Free(void* p, size_t size);
+	char* AddrFromIndex(int i) const;
+	int IndexFromAddr(const char* p) const;
 
-	struct Slice
-	{
-		void* startOfSlice;
-		bool inUse;
-		size_t size;
-	};
+	void* Alloc();
+	void Free(void* p);
+
+	void DeletePool();
+
+	void* operator new(size_t size);
+	void operator delete(void* pMem);
 
 private:
-	size_t sliceSize;
-	vector<Slice> slices;
+	int mNumOfSlices;
+	int mSizeOfSlice;
+	int mNumFreeSlices;
+	int mNumFilledSlices;
+	char* pMemStart;
+	char* pNext;
 };
 

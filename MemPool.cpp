@@ -1,43 +1,142 @@
 #include "MemPool.h"
 
-MemPool::MemPool(size_t objectSize, size_t poolSize)
+MemPool::MemPool(size_t sizeOfSlice, int numOfSlices)
 {
-	char* pMem = (char*)malloc(poolSize);
-	sliceSize = objectSize;
+	mNumOfSlices = numOfSlices;
+	mSizeOfSlice = sizeOfSlice;
 	
-	int totalSlices = poolSize / objectSize;
+	pMemStart = (unsigned char*)::operator new(sizeof(mSizeOfSlice * mNumOfSlices));
 
-	for (int i = 0; i < totalSlices; i++)
-	{
-		Slice newSlice;
-
-		if (i != 0)
-		{
-			//newSlice.startOfSlice = slices[i - 1].startOfSlice + sliceSize;
-		}
-		else
-		{
-			newSlice.startOfSlice = pMem;
-		}
-
-		newSlice.size = sliceSize;
-		newSlice.inUse = false;
-
-		slices.push_back(newSlice);
-	}
+	mNumSlicesInitialised = 0;
+	mNumFreeSlices = numOfSlices;
+	pNext = pMemStart;
 }
 
 MemPool::~MemPool()
 {
+	DeletePool();
+}
+
+char* MemPool::AddrFromIndex(int i) const
+{
 
 }
 
-void* MemPool::Alloc(size_t size)
+int MemPool::IndexFromAddr(const char* p) const
 {
-	return nullptr;
+
 }
 
-void MemPool::Free(void* p, size_t size)
+void* MemPool::Alloc()
 {
+	if (mNumSlicesInitialised < mNumOfSlices)
+	{
+		int* p = (int*)AddrFromIndex(mNumSlicesInitialised);
+		*p = mNumSlicesInitialised - 1;
+		mNumSlicesInitialised++;
+	}
 
+	void* ret = NULL;
+
+	if (mNumFreeSlices > 0)
+	{
+		ret = (void*)pNext;
+		--mNumFreeSlices;
+
+		if (mNumFreeSlices != 0)
+		{
+			pNext = AddrFromIndex(*((int*)pNext));
+		}
+		else
+		{
+			pNext = NULL;
+		}
+	}
+
+	return ret;
+}
+
+void MemPool::Free(void* p)
+{
+	if (pNext != NULL)
+	{
+		(*(int*)p) = IndexFromAddr(pNext);
+		pNext
+	}
+}
+
+void MemPool::DeletePool()
+{
+	delete[] pMemStart;
+	pMemStart = NULL;
+}
+
+void* MemPool::operator new(size_t size)
+{
+	cout << "\MemPool new being used\n";
+	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
+
+	char* pMem = (char*)malloc(totalBytes);
+	Header* pHeader = (Header*)pMem;
+	void* pStartMemAlloced = pMem + sizeof(Header);
+	Footer* pFooter = (Footer*)(pMem + sizeof(Header) + size);
+
+	pHeader->size = size;
+	pHeader->type = Tracker::Type::pool;
+	pHeader->checkValue = 0xDEADC0DE;
+
+	if (Tracker::GetPreviousHeader() != nullptr)
+	{
+		pHeader->pNextHeader = nullptr;
+		pHeader->pPrevHeader = Tracker::GetPreviousHeader();
+		pHeader->pPrevHeader->pNextHeader = pHeader;
+		Tracker::SetPreviousHeader(pHeader);
+	}
+	else
+	{
+		pHeader->pPrevHeader = nullptr;
+		pHeader->pNextHeader = nullptr;
+		Tracker::SetPreviousHeader(pHeader);
+		Tracker::SetFirstHeader(pHeader);
+	}
+
+	pFooter->checkValue = 0xDEADBEEF;
+
+	Tracker::AddBytesAlloced(totalBytes, pHeader);
+	return pStartMemAlloced;
+}
+
+void MemPool::operator delete(void* pMem)
+{
+	cout << "\MemPool delete being used\n";
+	Header* pHeader = (Header*)((char*)pMem - sizeof(Header));
+	Footer* pFooter = (Footer*)((char*)pMem + pHeader->size);
+
+	if (pHeader->pPrevHeader != nullptr)
+	{
+		pHeader->pPrevHeader->pNextHeader = pHeader->pNextHeader;
+
+		if (pHeader->pNextHeader != nullptr)
+			pHeader->pNextHeader->pPrevHeader = pHeader->pPrevHeader;
+	}
+	else
+	{
+		if (pHeader->pNextHeader != nullptr)
+		{
+			pHeader->pNextHeader->pPrevHeader = nullptr;
+			Tracker::SetFirstHeader(pHeader->pNextHeader);
+		}
+		else
+			Tracker::SetFirstHeader(nullptr);
+	}
+
+	if (pHeader->checkValue != 0xDEADC0DE)
+		cout << "\nHeader checkValue does not match expected value for " << pHeader << ", something has gone wrong\n";
+	else
+	{
+		cout << "\nHeader " << pHeader << " checkValue correct, freeing memory...\n";
+		Tracker::RemoveBytesAlloced(sizeof(pHeader), pHeader);
+
+		free(pHeader);
+	}
 }

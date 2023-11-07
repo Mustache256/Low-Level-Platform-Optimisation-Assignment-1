@@ -6,5 +6,3 @@ void* operator new(size_t size);
 void* operator new(size_t size, Tracker::Type type);
 
 void operator delete(void* pMem);
-
-void ConstructList(Header* pHeader);

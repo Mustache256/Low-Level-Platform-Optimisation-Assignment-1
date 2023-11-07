@@ -17,7 +17,20 @@ void* operator new(size_t size)
 	pHeader->type = Tracker::base;
 	pHeader->checkValue = 0xDEADC0DE;
 
-	ConstructList(pHeader);
+	if (Tracker::GetPreviousHeader() != nullptr)
+	{
+		pHeader->pNextHeader = nullptr;
+		pHeader->pPrevHeader = Tracker::GetPreviousHeader();
+		pHeader->pPrevHeader->pNextHeader = pHeader;
+		Tracker::SetPreviousHeader(pHeader);
+	}
+	else
+	{
+		pHeader->pPrevHeader = nullptr;
+		pHeader->pNextHeader = nullptr;
+		Tracker::SetPreviousHeader(pHeader);
+		Tracker::SetFirstHeader(pHeader);
+	}
 
 	pFooter->checkValue = 0xDEADBEEF;
 
@@ -39,7 +52,20 @@ void* operator new(size_t size, Tracker::Type type)
 	pHeader->type = type;
 	pHeader->checkValue = 0xDEADC0DE;
 
-	ConstructList(pHeader);
+	if (Tracker::GetPreviousHeader() != nullptr)
+	{
+		pHeader->pNextHeader = nullptr;
+		pHeader->pPrevHeader = Tracker::GetPreviousHeader();
+		pHeader->pPrevHeader->pNextHeader = pHeader;
+		Tracker::SetPreviousHeader(pHeader);
+	}
+	else
+	{
+		pHeader->pPrevHeader = nullptr;
+		pHeader->pNextHeader = nullptr;
+		Tracker::SetPreviousHeader(pHeader);
+		Tracker::SetFirstHeader(pHeader);
+	}
 
 	pFooter->checkValue = 0xDEADBEEF;
 
@@ -79,24 +105,6 @@ void operator delete(void* pMem)
 		Tracker::RemoveBytesAlloced(sizeof(pHeader), pHeader);
 
 		free(pHeader);
-	}
-}
-
-void ConstructList(Header* pHeader)
-{
-	if (Tracker::GetPreviousHeader() != nullptr)
-	{
-		pHeader->pNextHeader = nullptr;
-		pHeader->pPrevHeader = Tracker::GetPreviousHeader();
-		pHeader->pPrevHeader->pNextHeader = pHeader;
-		Tracker::SetPreviousHeader(pHeader);
-	}
-	else
-	{
-		pHeader->pPrevHeader = nullptr;
-		pHeader->pNextHeader = nullptr;
-		Tracker::SetPreviousHeader(pHeader);
-		Tracker::SetFirstHeader(pHeader);
 	}
 }
 //#endif // DEBUG
