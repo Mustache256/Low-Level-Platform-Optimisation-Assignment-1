@@ -8,10 +8,11 @@
 #include <ctime>
 #include <chrono>
 
-#include "Tracker.h";
+#include "Tracker.h"
 #include "Global.h"
 #include "Vector3.h"
 #include "Box.h"
+#include "MemPool.h"
 
 using namespace std::chrono;
 
@@ -36,6 +37,7 @@ using namespace std::chrono;
 // gravity - change it and see what happens (usually negative!)
 const float gravity = -19.81f;
 std::vector<Box> boxes;
+MemPool* pool = new MemPool(4, 4);
 
 void initScene(int boxCount) {
     for (int i = 0; i < boxCount; ++i) {
