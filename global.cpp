@@ -5,6 +5,7 @@ using namespace std;
 //#ifdef DEBUG
 void* operator new(size_t size)
 {
+	cout << "\n-------------\n";
 	cout << "\nGlobal new being used\n";
 	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
 	
@@ -40,6 +41,7 @@ void* operator new(size_t size)
 
 void* operator new(size_t size, Tracker::Type type)
 {
+	cout << "\n-------------\n";
 	cout << "\nGlobal new being used\n";
 	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
 
@@ -75,6 +77,7 @@ void* operator new(size_t size, Tracker::Type type)
 
 void operator delete(void* pMem)
 {
+	cout << "\n-------------\n";
 	cout << "\nglobal delete being used\n";
 	Header* pHeader = (Header*)((char*)pMem - sizeof(Header));
 	Footer* pFooter = (Footer*)((char*)pMem + pHeader->size);

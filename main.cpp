@@ -37,7 +37,6 @@ using namespace std::chrono;
 // gravity - change it and see what happens (usually negative!)
 const float gravity = -19.81f;
 std::vector<Box> boxes;
-MemPool* pool = new MemPool(4, 4);
 
 void initScene(int boxCount) {
     for (int i = 0; i < boxCount; ++i) {
@@ -368,7 +367,11 @@ int main(int argc, char** argv) {
     glutDisplayFunc(display);
     glutIdleFunc(idle);
 
+    MemPool* pool = new MemPool(10, 5);
+
     // it will stick here until the program ends. 
     glutMainLoop();
+
+    pool->DeletePool();
     return 0;
 }

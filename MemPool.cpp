@@ -51,7 +51,7 @@ void* MemPool::Alloc()
 	return ret;
 }
 
-void MemPool::Free(void* p)
+void MemPool::Dealloc(void* p)
 {
 	if (pNext != NULL)
 	{
@@ -73,9 +73,33 @@ void MemPool::DeletePool()
 	pMemStart = NULL;
 }
 
+void* MemPool::operator new(size_t size, MemPool* pMemPool)
+{
+	cout << "\n-------------\n";
+	cout << "\nAllocating to Memory Pool...\n";
+	char* pMem = (char*)pMemPool->Alloc();
+
+	if (pMem == nullptr)
+	{
+		cout << "\nNo free slices avaiable in Memory Pool, allocating outside pool instead...\n";
+		return ::operator new(size);
+	}
+
+	if (size > pMemPool->mSizeOfSlice)
+	{
+		cerr << "\nCannot allocate to pool as object is larger than slice's size, allocating outside pool instead...\n";
+		return ::operator new(size);
+	}
+
+	cout << "\nAllocated " << size << " bytes to Memory Pool at address " << pMem << "\n";
+
+	return pMem;
+}
+
 void* MemPool::operator new(size_t size)
 {
-	cout << "\MemPool new being used\n";
+	cout << "\n-------------\n";
+	cout << "\nMemPool new being used\n";
 	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
 
 	char* pMem = (char*)malloc(totalBytes);
@@ -110,7 +134,8 @@ void* MemPool::operator new(size_t size)
 
 void MemPool::operator delete(void* pMem)
 {
-	cout << "\MemPool delete being used\n";
+	cout << "\n-------------\n";
+	cout << "\nMemPool delete being used\n";
 	Header* pHeader = (Header*)((char*)pMem - sizeof(Header));
 	Footer* pFooter = (Footer*)((char*)pMem + pHeader->size);
 
@@ -141,4 +166,11 @@ void MemPool::operator delete(void* pMem)
 
 		free(pHeader);
 	}
+}
+
+void MemPool::operator delete(void* pMem, MemPool* pMemPool)
+{
+	cout << "\n-------------\n";
+	cout << "\nDe-Allocating from Memory Pool...\n";
+	pMemPool->Dealloc(pMem);
 }

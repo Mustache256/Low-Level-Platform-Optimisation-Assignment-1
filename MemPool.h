@@ -17,16 +17,19 @@ public:
 	int IndexFromAddr(const char* p) const;
 
 	void* Alloc();
-	void Free(void* p);
+	void Dealloc(void* p);
 
 	void DeletePool();
 
 	void* operator new(size_t size);
+	void* operator new(size_t size, MemPool* pMemPool);
 	void operator delete(void* pMem);
+	void operator delete(void* pMem, MemPool* pMemPool);
+
+	size_t mSizeOfSlice;
 
 private:
 	int mNumOfSlices;
-	int mSizeOfSlice;
 	int mNumFreeSlices;
 	int mNumSlicesInitialised;
 	char* pMemStart;
