@@ -28,7 +28,7 @@ private:
 	int mNumOfSlices;
 	int mSizeOfSlice;
 	int mNumFreeSlices;
-	int mNumFilledSlices;
+	int mNumSlicesInitialised;
 	char* pMemStart;
 	char* pNext;
 };
