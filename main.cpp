@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <chrono>
+#include <thread>
 
 #include "Tracker.h"
 #include "Global.h"
@@ -18,6 +19,7 @@ using namespace std::chrono;
 
 // this is the number of falling physical items. 
 #define NUMBER_OF_BOXES 5000
+#define NUMBER_OF_THREADS 8
 
 // these is where the camera is, where it is looking and the bounds of the continaing box. You shouldn't need to alter these
 
@@ -37,6 +39,7 @@ using namespace std::chrono;
 // gravity - change it and see what happens (usually negative!)
 const float gravity = -19.81f;
 std::vector<Box> boxes;
+std::vector<thread> physThreads;
 
 void initScene(int boxCount) {
     for (int i = 0; i < boxCount; ++i) {
@@ -152,13 +155,53 @@ bool checkCollision(const Box& a, const Box& b) {
         (std::abs(a.position.z - b.position.z) * 2 < (a.size.z + b.size.z));
 }
 
+void updateBoxPhysics(Box box, const float deltaTime)
+{
+    const float floorY = 0.0f;
+
+    box.velocity.y += gravity * deltaTime;
+
+    // Update position based on velocity
+    box.position.x += box.velocity.x * deltaTime;
+    box.position.y += box.velocity.y * deltaTime;
+    box.position.z += box.velocity.z * deltaTime;
+
+    // Check for collision with the floor
+    if (box.position.y - box.size.y / 2.0f < floorY) {
+        box.position.y = floorY + box.size.y / 2.0f;
+        float dampening = 0.7f;
+        box.velocity.y = -box.velocity.y * dampening;
+    }
+
+    // Check for collision with the walls
+    if (box.position.x - box.size.x / 2.0f < minX || box.position.x + box.size.x / 2.0f > maxX) {
+        box.velocity.x = -box.velocity.x;
+    }
+    if (box.position.z - box.size.z / 2.0f < minZ || box.position.z + box.size.z / 2.0f > maxZ) {
+        box.velocity.z = -box.velocity.z;
+    }
+
+    for (Box& other : boxes) {
+        if (&box == &other) continue;
+        if (checkCollision(box, other)) {
+            resolveCollision(box, other);
+            break;
+        }
+    }
+}
+
+
 // update the physics: gravity, collision test, collision resolution
 void updatePhysics(const float deltaTime) {
     const float floorY = 0.0f;
 
     for (Box& box : boxes) {
+        thread newThread(updateBoxPhysics, box, deltaTime);
+        //physThreads.push_back(newThread);
+        newThread.join();
+
         // Update velocity due to gravity
-        box.velocity.y += gravity * deltaTime;
+        /*box.velocity.y += gravity * deltaTime;
 
         // Update position based on velocity
         box.position.x += box.velocity.x * deltaTime;
@@ -187,7 +230,7 @@ void updatePhysics(const float deltaTime) {
                 resolveCollision(box, other);
                 break;
             }
-        }
+        }*/
     }
 }
 
@@ -275,10 +318,15 @@ void idle() {
     const duration<float> frameTime = last - old;
     float deltaTime = frameTime.count();
 
+    //thread physThread(updatePhysics, deltaTime);
     updatePhysics(deltaTime);
 
     // tell glut to draw - note this will cap this function at 60 fps
+    //thread glutThread(glutPostRedisplay);
     glutPostRedisplay();
+
+    //physThread.join();
+    //glutThread.join();
 }
 
 // called the mouse button is tapped
@@ -343,8 +391,6 @@ void keyboard(unsigned char key, int x, int y) {
 
 // the main function. 
 int main(int argc, char** argv) {
-
-
 
     srand(static_cast<unsigned>(time(0))); // Seed random number generator
     glutInit(&argc, argv);
