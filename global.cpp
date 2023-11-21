@@ -5,8 +5,8 @@ using namespace std;
 //#ifdef DEBUG
 void* operator new(size_t size)
 {
-	cout << "\n-------------\n";
-	cout << "\nGlobal new being used\n";
+	//cout << "\n-------------\n";
+	//cout << "\nGlobal new being used\n";
 	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
 	
 	char* pMem = (char*)malloc(totalBytes);
@@ -41,8 +41,8 @@ void* operator new(size_t size)
 
 void* operator new(size_t size, Tracker::Type type)
 {
-	cout << "\n-------------\n";
-	cout << "\nGlobal new being used\n";
+	// << "\n-------------\n";
+	//cout << "\nGlobal new being used\n";
 	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
 
 	char* pMem = (char*)malloc(totalBytes);
@@ -77,8 +77,8 @@ void* operator new(size_t size, Tracker::Type type)
 
 void operator delete(void* pMem)
 {
-	cout << "\n-------------\n";
-	cout << "\nglobal delete being used\n";
+	//cout << "\n-------------\n";
+	//cout << "\nglobal delete being used\n";
 	Header* pHeader = (Header*)((char*)pMem - sizeof(Header));
 	Footer* pFooter = (Footer*)((char*)pMem + pHeader->size);
 
@@ -104,7 +104,7 @@ void operator delete(void* pMem)
 		cout << "\nHeader checkValue does not match expected value for " << pHeader << ", something has gone wrong\n";
 	else
 	{
-		cout << "\nHeader " << pHeader << " checkValue correct, freeing memory...\n";
+		//cout << "\nHeader " << pHeader << " checkValue correct, freeing memory...\n";
 		Tracker::RemoveBytesAlloced(sizeof(pHeader), pHeader);
 
 		free(pHeader);

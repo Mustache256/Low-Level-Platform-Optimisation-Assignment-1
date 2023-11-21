@@ -7,7 +7,7 @@ Header* Tracker::pFirstHeader;
 void Tracker::AddBytesAlloced(size_t bytes, Header* h)
 {
 	bytesAlloced[h->type] += bytes;
-	cout << "\nAdded " << bytes << " bytes to the " << h->type << " tracker total\n";
+	//cout << "\nAdded " << bytes << " bytes to the " << h->type << " tracker total\n";
 }
 
 void Tracker::RemoveBytesAlloced(size_t bytes, Header* h)
@@ -19,7 +19,7 @@ void Tracker::RemoveBytesAlloced(size_t bytes, Header* h)
 	else
 	{
 		bytesAlloced[h->type] += bytes;
-		cout << "\nRemoved " << bytes << " bytes from the " << h->type << " tracker total\n";
+		//cout << "\nRemoved " << bytes << " bytes from the " << h->type << " tracker total\n";
 	}
 }
 

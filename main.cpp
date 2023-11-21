@@ -8,6 +8,8 @@
 #include <ctime>
 #include <chrono>
 #include <thread>
+#include <mutex>
+#include <ppl.h>
 
 #include "Tracker.h"
 #include "Global.h"
@@ -18,8 +20,8 @@
 using namespace std::chrono;
 
 // this is the number of falling physical items. 
-#define NUMBER_OF_BOXES 5000
-#define NUMBER_OF_THREADS 8
+#define NUMBER_OF_BOXES 50
+#define NUMBER_OF_THREADS 10
 
 // these is where the camera is, where it is looking and the bounds of the continaing box. You shouldn't need to alter these
 
@@ -40,6 +42,11 @@ using namespace std::chrono;
 const float gravity = -19.81f;
 std::vector<Box> boxes;
 std::vector<thread> physThreads;
+
+mutex graphicsMutex;
+
+bool threadsCreated = false;
+bool exitingProgram = false;
 
 void initScene(int boxCount) {
     for (int i = 0; i < boxCount; ++i) {
@@ -155,53 +162,126 @@ bool checkCollision(const Box& a, const Box& b) {
         (std::abs(a.position.z - b.position.z) * 2 < (a.size.z + b.size.z));
 }
 
-void updateBoxPhysics(Box box, const float deltaTime)
+void updateBoxPhysics(int numOfBoxes, int boxArrayIndex, const float deltaTime)
 {
     const float floorY = 0.0f;
 
-    box.velocity.y += gravity * deltaTime;
-
-    // Update position based on velocity
-    box.position.x += box.velocity.x * deltaTime;
-    box.position.y += box.velocity.y * deltaTime;
-    box.position.z += box.velocity.z * deltaTime;
-
-    // Check for collision with the floor
-    if (box.position.y - box.size.y / 2.0f < floorY) {
-        box.position.y = floorY + box.size.y / 2.0f;
-        float dampening = 0.7f;
-        box.velocity.y = -box.velocity.y * dampening;
-    }
-
-    // Check for collision with the walls
-    if (box.position.x - box.size.x / 2.0f < minX || box.position.x + box.size.x / 2.0f > maxX) {
-        box.velocity.x = -box.velocity.x;
-    }
-    if (box.position.z - box.size.z / 2.0f < minZ || box.position.z + box.size.z / 2.0f > maxZ) {
-        box.velocity.z = -box.velocity.z;
-    }
-
-    for (Box& other : boxes) {
-        if (&box == &other) continue;
-        if (checkCollision(box, other)) {
-            resolveCollision(box, other);
+    while (!exitingProgram)
+    {
+        if (exitingProgram)
             break;
+
+        //graphicsMutex.lock();
+
+        for (int i = 0; i < numOfBoxes; i++)
+        {
+            Box& box = boxes[boxArrayIndex + i];
+
+            //boxes[boxArrayIndex + i].velocity.y += gravity * deltaTime;
+            box.velocity.y += gravity * deltaTime;
+
+            // Update position based on velocity
+            //boxes[boxArrayIndex + i].position.x += boxes[boxArrayIndex + i].velocity.x * deltaTime;
+            box.position.x += box.velocity.x * deltaTime;
+            //boxes[boxArrayIndex + i].position.y += boxes[boxArrayIndex + i].velocity.y * deltaTime;
+            box.position.y += box.velocity.y * deltaTime;
+            //boxes[boxArrayIndex + i].position.z += boxes[boxArrayIndex + i].velocity.z * deltaTime;
+            box.position.z += box.velocity.z * deltaTime;
+
+            // Check for collision with the floor
+            /*if (boxes[boxArrayIndex + i].position.y - boxes[boxArrayIndex + i].size.y / 2.0f < floorY) {
+                boxes[boxArrayIndex + i].position.y = floorY + boxes[boxArrayIndex + i].size.y / 2.0f;
+                float dampening = 0.7f;
+                boxes[boxArrayIndex + i].velocity.y = -boxes[boxArrayIndex + i].velocity.y * dampening;
+            }*/
+            if (box.position.y - box.size.y / 2.0f < floorY) {
+                box.position.y = floorY + box.size.y / 2.0f;
+                float dampening = 0.7f;
+                box.velocity.y = -box.velocity.y * dampening;
+            }
+
+            // Check for collision with the walls
+            /*if (boxes[boxArrayIndex + i].position.x - boxes[boxArrayIndex + i].size.x / 2.0f < minX || boxes[boxArrayIndex + i].position.x + boxes[boxArrayIndex + i].size.x / 2.0f > maxX) {
+                boxes[boxArrayIndex + i].velocity.x = -boxes[boxArrayIndex + i].velocity.x;
+            }
+            if (boxes[boxArrayIndex + i].position.z - boxes[boxArrayIndex + i].size.z / 2.0f < minZ || boxes[boxArrayIndex + i].position.z + boxes[boxArrayIndex + i].size.z / 2.0f > maxZ) {
+                boxes[boxArrayIndex + i].velocity.z = -boxes[boxArrayIndex + i].velocity.z;
+            }*/
+            if (box.position.x - box.size.x / 2.0f < minX || box.position.x + box.size.x / 2.0f > maxX) {
+                box.velocity.x = -box.velocity.x;
+            }
+            if (box.position.z - box.size.z / 2.0f < minZ || box.position.z + box.size.z / 2.0f > maxZ) {
+                box.velocity.z = -box.velocity.z;
+            }
+
+            /*for (Box& other : boxes) {
+                if (&boxes[boxArrayIndex + i] == &other) continue;
+                if (checkCollision(boxes[boxArrayIndex + i], other)) {
+                    resolveCollision(boxes[boxArrayIndex + i], other);
+                    break;
+                }
+            }*/
+
+            for (Box& other : boxes) {
+                if (&box == &other) continue;
+                if (checkCollision(box, other)) {
+                    resolveCollision(box, other);
+                    break;
+                }
+            }
         }
+
+        //graphicsMutex.unlock();
     }
 }
 
 
 // update the physics: gravity, collision test, collision resolution
 void updatePhysics(const float deltaTime) {
-    const float floorY = 0.0f;
+    //const float floorY = 0.0f;
 
-    for (Box& box : boxes) {
-        thread newThread(updateBoxPhysics, box, deltaTime);
-        //physThreads.push_back(newThread);
-        newThread.join();
+    if (!threadsCreated)
+    {
+        int boxesPerThread = boxes.size() / NUMBER_OF_THREADS;
+        int boxIndex = 0;
 
+
+        for (int i = 0; i < NUMBER_OF_THREADS; i++)
+        {
+            physThreads.push_back(thread(updateBoxPhysics, boxesPerThread, boxIndex, deltaTime));
+            boxIndex += boxesPerThread;
+        }
+
+        threadsCreated = true;
+    }
+    
+    /*graphicsMutex.lock();
+
+    int boxesPerThread = boxes.size() / thread::hardware_concurrency();
+    int boxIndex = 0;
+
+
+    for (int i = 0; i < thread::hardware_concurrency(); i++)
+    {
+        physThreads.push_back(thread(updateBoxPhysics, boxesPerThread, boxIndex, deltaTime));
+        boxIndex += boxesPerThread;
+    }
+
+    for (thread& th : physThreads)
+    {
+        th.join();
+       // delete th;
+    }
+
+
+    physThreads.clear();
+    
+    graphicsMutex.unlock();*/
+
+
+    /*for (Box& box : boxes) {
         // Update velocity due to gravity
-        /*box.velocity.y += gravity * deltaTime;
+        box.velocity.y += gravity * deltaTime;
 
         // Update position based on velocity
         box.position.x += box.velocity.x * deltaTime;
@@ -230,8 +310,8 @@ void updatePhysics(const float deltaTime) {
                 resolveCollision(box, other);
                 break;
             }
-        }*/
-    }
+        }
+    }*/
 }
 
 // draw the sides of the containing area
@@ -247,6 +327,7 @@ void drawQuad(const Vector3& v1, const Vector3& v2, const Vector3& v3, const Vec
 
 // draw the physics object
 void drawBox(const Box& box) {
+
     glPushMatrix();
     glTranslatef(box.position.x, box.position.y, box.position.z);
     GLfloat diffuseMaterial[] = { box.colour.x, box.colour.y, box.colour.z, 1.0f };
@@ -291,9 +372,13 @@ void drawScene() {
     Vector3 backWallV4(maxX, 0.0f, minZ);
     drawQuad(backWallV1, backWallV2, backWallV3, backWallV4);
 
+    graphicsMutex.lock();
+
     for (const Box& box : boxes) {
         drawBox(box);
     }
+
+    graphicsMutex.unlock();
 }
 
 // called by GLUT - displays the scene
@@ -413,11 +498,11 @@ int main(int argc, char** argv) {
     glutDisplayFunc(display);
     glutIdleFunc(idle);
 
-    MemPool* pool = new MemPool(10, 5);
+    //MemPool* pool = new MemPool(10, 5);
 
     // it will stick here until the program ends. 
     glutMainLoop();
 
-    pool->DeletePool();
+    //pool->DeletePool();
     return 0;
 }
