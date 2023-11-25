@@ -177,6 +177,7 @@
     <ClCompile Include="Global.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MemPool.cpp" />
+    <ClCompile Include="PhysicsManager.cpp" />
     <ClCompile Include="Tracker.cpp" />
     <ClCompile Include="Vector3.cpp" />
   </ItemGroup>
@@ -187,6 +188,7 @@
     <ClInclude Include="Definitions.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="MemPool.h" />
+    <ClInclude Include="PhysicsManager.h" />
     <ClInclude Include="Tracker.h" />
     <ClInclude Include="Vector3.h" />
   </ItemGroup>

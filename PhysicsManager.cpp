@@ -6,11 +6,6 @@ PhysicsManager::PhysicsManager(float newGravity, const float newFloorY)
 	floorY = newFloorY;
 }
 
-PhysicsManager::~PhysicsManager()
-{
-
-}
-
 void PhysicsManager::ApplyGravity(float& objY)
 {
 	objY += gravity * deltaTime;
@@ -43,14 +38,15 @@ void PhysicsManager::CheckBoundsCollision(Vector3& objPos, Vector3& objVel, Vect
 	}
 }
 
-void PhysicsManager::CheckOtherCollision(Vector3& objPos, Vector3& objVel, Vector3& objSize, Vector3& otherPos, Vector3& otherVel, Vector3& otherSize)
+bool PhysicsManager::CheckOtherCollision(Vector3& objPos, Vector3& objSize, Vector3& otherPos, Vector3& otherSize)
 {
-	if(std::abs(objPos.x - otherPos.x) * 2 < (objSize.x + otherSize.x) && std::abs(objPos.y - otherPos.y) * 2 < (objSize.y + otherSize.y) && std::abs(objPos.z - otherPos.z) * 2 < (objSize.z + otherSize.z))
-	{
-		ResolveOtherCollision(objPos, objVel, otherPos, otherVel);
-	}
+	return (std::abs(objPos.x - otherPos.x) * 2 < (objSize.x + otherSize.x)) &&
+		(std::abs(objPos.y - otherPos.y) * 2 < (objSize.y + otherSize.y)) &&
+		(std::abs(objPos.z - otherPos.z) * 2 < (objSize.z + otherSize.z));
 }
 
+//I'm keeping this function in the manager, but for some reason it cannot resolve collisions between the boxes, I don't really know why since
+//it is basically identical to the already existing resolveCollision function, so I will continue to use the original function instead 
 void PhysicsManager::ResolveOtherCollision(Vector3& objPos, Vector3& objVel, Vector3& otherPos, Vector3& otherVel)
 {
 	Vector3 normal = { objPos.x - otherPos.x, objPos.y - otherPos.y, objPos.z - otherPos.z };

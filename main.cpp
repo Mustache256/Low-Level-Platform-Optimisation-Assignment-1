@@ -16,6 +16,7 @@
 #include "Box.h"
 #include "MemPool.h"
 #include "Definitions.h"
+#include "PhysicsManager.h"
 
 using namespace std::chrono;
 using namespace concurrency;
@@ -25,6 +26,8 @@ using namespace std;
 const float gravity = -19.81f;
 
 std::vector<Box> boxes;
+
+PhysicsManager* physManager = new PhysicsManager(-19.81, 0.0f);
 
 void initScene(int boxCount) {
     for (int i = 0; i < boxCount; ++i) {
@@ -133,81 +136,44 @@ void resolveCollision(Box& a, Box& b) {
     b.velocity.z -= j * normal.z;
 }
 
-// are two boxes colliding?
-bool checkCollision(const Box& a, const Box& b) {
-    return (std::abs(a.position.x - b.position.x) * 2 < (a.size.x + b.size.x)) &&
-        (std::abs(a.position.y - b.position.y) * 2 < (a.size.y + b.size.y)) &&
-        (std::abs(a.position.z - b.position.z) * 2 < (a.size.z + b.size.z));
-}
-
 // update the physics: gravity, collision test, collision resolution
-void updatePhysics(const float deltaTime) {
-    const float floorY = 0.0f;
-
+void updatePhysics() {
 #if USING_PHYSICS_MULTITHREADING
     parallel_for_each(begin(boxes), end(boxes), [&](Box& box) {
-        // Update velocity due to gravity
-        box.velocity.y += gravity * deltaTime;
+        physManager->ApplyGravity(box.velocity.y);
 
-        // Update position based on velocity
-        box.position.x += box.velocity.x * deltaTime;
-        box.position.y += box.velocity.y * deltaTime;
-        box.position.z += box.velocity.z * deltaTime;
+        physManager->ApplyVelocityChange(box.position, box.velocity);
 
-        // Check for collision with the floor
-        if (box.position.y - box.size.y / 2.0f < floorY) {
-            box.position.y = floorY + box.size.y / 2.0f;
-            float dampening = 0.7f;
-            box.velocity.y = -box.velocity.y * dampening;
-        }
-
-        // Check for collision with the walls
-        if (box.position.x - box.size.x / 2.0f < minX || box.position.x + box.size.x / 2.0f > maxX) {
-            box.velocity.x = -box.velocity.x;
-        }
-        if (box.position.z - box.size.z / 2.0f < minZ || box.position.z + box.size.z / 2.0f > maxZ) {
-            box.velocity.z = -box.velocity.z;
-        }
+        physManager->CheckBoundsCollision(box.position, box.velocity, box.size);
 
         // Check for collisions with other boxes
         for (Box& other : boxes) {
             if (&box == &other) continue;
-            if (checkCollision(box, other)) {
+            
+            if(physManager->CheckOtherCollision(box.position, box.size, other.position, other.size)) {
                 resolveCollision(box, other);
+                //This doesn't work for some reason I don't understand
+                //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
                 break;
             }
         }
     });
 #else
     for (Box& box : boxes) {
-        // Update velocity due to gravity
-        box.velocity.y += gravity * deltaTime;
+        physManager->ApplyGravity(box.velocity.y);
 
-        // Update position based on velocity
-        box.position.x += box.velocity.x * deltaTime;
-        box.position.y += box.velocity.y * deltaTime;
-        box.position.z += box.velocity.z * deltaTime;
+        physManager->ApplyVelocityChange(box.position, box.velocity);
 
-        // Check for collision with the floor
-        if (box.position.y - box.size.y / 2.0f < floorY) {
-            box.position.y = floorY + box.size.y / 2.0f;
-            float dampening = 0.7f;
-            box.velocity.y = -box.velocity.y * dampening;
-        }
-
-        // Check for collision with the walls
-        if (box.position.x - box.size.x / 2.0f < minX || box.position.x + box.size.x / 2.0f > maxX) {
-            box.velocity.x = -box.velocity.x;
-        }
-        if (box.position.z - box.size.z / 2.0f < minZ || box.position.z + box.size.z / 2.0f > maxZ) {
-            box.velocity.z = -box.velocity.z;
-        }
+        physManager->CheckBoundsCollision(box.position, box.velocity, box.size);
 
         // Check for collisions with other boxes
         for (Box& other : boxes) {
             if (&box == &other) continue;
-            if (checkCollision(box, other)) {
+
+            if (physManager->CheckOtherCollision(box.position, box.size, other.position, other.size)) {
                 resolveCollision(box, other);
+                //This doesn't work for some reason I don't understand
+                //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
                 break;
             }
         }
@@ -294,21 +260,12 @@ void display() {
 // see https://www.opengl.org/resources/libraries/glut/spec3/node63.html#:~:text=glutIdleFunc
 // NOTE this may be capped at 60 fps as we are using glutPostRedisplay(). If you want it to go higher than this, maybe a thread will help here. 
 void idle() {
-    static auto last = steady_clock::now();
-    auto old = last;
-    last = steady_clock::now();
-    const duration<float> frameTime = last - old;
-    float deltaTime = frameTime.count();
+    physManager->UpdateDeltaTime();
 
-    //thread physThread(updatePhysics, deltaTime);
-    updatePhysics(deltaTime);
+    updatePhysics();
 
     // tell glut to draw - note this will cap this function at 60 fps
-    //thread glutThread(glutPostRedisplay);
     glutPostRedisplay();
-
-    //physThread.join();
-    //glutThread.join();
 }
 
 // called the mouse button is tapped

@@ -19,6 +19,9 @@
     <ClCompile Include="MemPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PhysicsManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Callbacks.h">
@@ -43,6 +46,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Definitions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
