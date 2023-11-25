@@ -85,6 +85,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)glut/include/</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -183,6 +184,7 @@
     <ClInclude Include="Box.h" />
     <ClInclude Include="Callbacks.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="Definitions.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="MemPool.h" />
     <ClInclude Include="Tracker.h" />

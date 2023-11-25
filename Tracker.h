@@ -25,6 +25,7 @@ public:
 		base,
 		box,
 		pool,
+		physics,
 		count
 	};
 
