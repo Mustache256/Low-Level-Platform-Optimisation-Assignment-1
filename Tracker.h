@@ -26,6 +26,7 @@ public:
 		box,
 		pool,
 		physics,
+		quad,
 		count
 	};
 

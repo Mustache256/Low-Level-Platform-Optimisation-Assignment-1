@@ -19,3 +19,5 @@
 
 //Toggle to enable and disable physics multithreading
 #define USING_PHYSICS_MULTITHREADING true;
+//Toggle to enable and disable graphics (specifically box) rendering multithreading 
+#define USING_GRAPHICS_MULTITHREADING false;

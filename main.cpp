@@ -25,38 +25,46 @@ using namespace std;
 // gravity - change it and see what happens (usually negative!)
 const float gravity = -19.81f;
 
-std::vector<Box> boxes;
+//Will use this again if I can find a solution to the memory pool exception
+//MemPool* boxPool = new MemPool(sizeof(Box), NUMBER_OF_BOXES);
+std::vector<Box*> boxes;
 
 PhysicsManager* physManager = new PhysicsManager(-19.81, 0.0f);
 
 void initScene(int boxCount) {
     for (int i = 0; i < boxCount; ++i) {
-        Box box;
+        
+        //Will use this again if I can find a solution to the memory pool exception
+        //Box* box = (Box*)MemPool::operator new(sizeof(Box), boxPool);
+        Box* box = new Box();  
 
         // Assign random x, y, and z positions within specified ranges
-        box.genRandPos(box);
+        //box.genRandPos(box);
+        box->genRandPos(box);
 
-        box.setBoxSize(box, 1.0f, 1.0f, 1.0f);
+        //box.setBoxSize(box, 1.0f, 1.0f, 1.0f);
+        box->setBoxSize(box, 1.0f, 1.0f, 1.0f);
 
         // Assign random x-velocity between -1.0f and 1.0f
-        box.genRandVel(box);
+        //box.genRandVel(box);
+        box->genRandVel(box);
 
         // Assign a random color to the box
-        box.genRandCol(box);
+        //box.genRandCol(box);
+        box->genRandCol(box);
 
         boxes.push_back(box);
     }
 }
 
-// a ray which is used to tap (by default, remove) a box - see the 'mouse' function for how this is used.
-bool rayBoxIntersection(const Vector3& rayOrigin, const Vector3& rayDirection, const Box& box) {
-    float tMin = (box.position.x - box.size.x / 2.0f - rayOrigin.x) / rayDirection.x;
-    float tMax = (box.position.x + box.size.x / 2.0f - rayOrigin.x) / rayDirection.x;
+bool rayBoxIntersection(const Vector3& rayOrigin, const Vector3& rayDirection, const Box* box) {
+    float tMin = (box->position.x - box->size.x / 2.0f - rayOrigin.x) / rayDirection.x;
+    float tMax = (box->position.x + box->size.x / 2.0f - rayOrigin.x) / rayDirection.x;
 
     if (tMin > tMax) std::swap(tMin, tMax);
 
-    float tyMin = (box.position.y - box.size.y / 2.0f - rayOrigin.y) / rayDirection.y;
-    float tyMax = (box.position.y + box.size.y / 2.0f - rayOrigin.y) / rayDirection.y;
+    float tyMin = (box->position.y - box->size.y / 2.0f - rayOrigin.y) / rayDirection.y;
+    float tyMax = (box->position.y + box->size.y / 2.0f - rayOrigin.y) / rayDirection.y;
 
     if (tyMin > tyMax) std::swap(tyMin, tyMax);
 
@@ -69,8 +77,8 @@ bool rayBoxIntersection(const Vector3& rayOrigin, const Vector3& rayDirection, c
     if (tyMax < tMax)
         tMax = tyMax;
 
-    float tzMin = (box.position.z - box.size.z / 2.0f - rayOrigin.z) / rayDirection.z;
-    float tzMax = (box.position.z + box.size.z / 2.0f - rayOrigin.z) / rayDirection.z;
+    float tzMin = (box->position.z - box->size.z / 2.0f - rayOrigin.z) / rayDirection.z;
+    float tzMax = (box->position.z + box->size.z / 2.0f - rayOrigin.z) / rayDirection.z;
 
     if (tzMin > tzMax) std::swap(tzMin, tzMax);
 
@@ -101,18 +109,16 @@ Vector3 screenToWorld(int x, int y) {
     return Vector3((float)posX, (float)posY, (float)posZ);
 }
 
-
-// if two boxes collide, push them away from each other
-void resolveCollision(Box& a, Box& b) {
-    Vector3 normal = { a.position.x - b.position.x, a.position.y - b.position.y, a.position.z - b.position.z };
+void resolveCollision(Box* a, Box* b) {
+    Vector3 normal = { a->position.x - b->position.x, a->position.y - b->position.y, a->position.z - b->position.z };
     float length = std::sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
 
     // Normalize the normal vector
     normal.normalise();
 
-    float relativeVelocityX = a.velocity.x - b.velocity.x;
-    float relativeVelocityY = a.velocity.y - b.velocity.y;
-    float relativeVelocityZ = a.velocity.z - b.velocity.z;
+    float relativeVelocityX = a->velocity.x - b->velocity.x;
+    float relativeVelocityY = a->velocity.y - b->velocity.y;
+    float relativeVelocityZ = a->velocity.z - b->velocity.z;
 
     // Compute the relative velocity along the normal
     float impulse = relativeVelocityX * normal.x + relativeVelocityY * normal.y + relativeVelocityZ * normal.z;
@@ -128,29 +134,29 @@ void resolveCollision(Box& a, Box& b) {
     float j = -(1.0f + e) * impulse * dampening;
 
     // Apply the impulse to the boxes' velocities
-    a.velocity.x += j * normal.x;
-    a.velocity.y += j * normal.y;
-    a.velocity.z += j * normal.z;
-    b.velocity.x -= j * normal.x;
-    b.velocity.y -= j * normal.y;
-    b.velocity.z -= j * normal.z;
+    a->velocity.x += j * normal.x;
+    a->velocity.y += j * normal.y;
+    a->velocity.z += j * normal.z;
+    b->velocity.x -= j * normal.x;
+    b->velocity.y -= j * normal.y;
+    b->velocity.z -= j * normal.z;
 }
 
 // update the physics: gravity, collision test, collision resolution
 void updatePhysics() {
 #if USING_PHYSICS_MULTITHREADING
-    parallel_for_each(begin(boxes), end(boxes), [&](Box& box) {
-        physManager->ApplyGravity(box.velocity.y);
+    parallel_for_each(begin(boxes), end(boxes), [&](Box* box) {
+        physManager->ApplyGravity(box->velocity.y);
 
-        physManager->ApplyVelocityChange(box.position, box.velocity);
+        physManager->ApplyVelocityChange(box->position, box->velocity);
 
-        physManager->CheckBoundsCollision(box.position, box.velocity, box.size);
+        physManager->CheckBoundsCollision(box->position, box->velocity, box->size);
 
         // Check for collisions with other boxes
-        for (Box& other : boxes) {
-            if (&box == &other) continue;
+        for (Box* other : boxes) {
+            if (box == other) continue;
             
-            if(physManager->CheckOtherCollision(box.position, box.size, other.position, other.size)) {
+            if(physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
                 resolveCollision(box, other);
                 //This doesn't work for some reason I don't understand
                 //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
@@ -159,18 +165,18 @@ void updatePhysics() {
         }
     });
 #else
-    for (Box& box : boxes) {
-        physManager->ApplyGravity(box.velocity.y);
+    for (Box* box : boxes) {
+        physManager->ApplyGravity(box->velocity.y);
 
-        physManager->ApplyVelocityChange(box.position, box.velocity);
+        physManager->ApplyVelocityChange(box->position, box->velocity);
 
-        physManager->CheckBoundsCollision(box.position, box.velocity, box.size);
+        physManager->CheckBoundsCollision(box->position, box->velocity, box->size);
 
         // Check for collisions with other boxes
-        for (Box& other : boxes) {
-            if (&box == &other) continue;
+        for (Box* other : boxes) {
+            if (box == other) continue;
 
-            if (physManager->CheckOtherCollision(box.position, box.size, other.position, other.size)) {
+            if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
                 resolveCollision(box, other);
                 //This doesn't work for some reason I don't understand
                 //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
@@ -192,14 +198,13 @@ void drawQuad(const Vector3& v1, const Vector3& v2, const Vector3& v3, const Vec
     glEnd();
 }
 
-// draw the physics object
-void drawBox(const Box& box) {
+void drawBox(const Box* box) {
 
     glPushMatrix();
-    glTranslatef(box.position.x, box.position.y, box.position.z);
-    GLfloat diffuseMaterial[] = { box.colour.x, box.colour.y, box.colour.z, 1.0f };
+    glTranslatef(box->position.x, box->position.y, box->position.z);
+    GLfloat diffuseMaterial[] = { box->colour.x, box->colour.y, box->colour.z, 1.0f };
     glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuseMaterial);
-    glScalef(box.size.x, box.size.y, box.size.z);
+    glScalef(box->size.x, box->size.y, box->size.z);
     glRotatef(-90, 1, 0, 0);
     glutSolidCube(1.0);
     //glutSolidTeapot(1);
@@ -239,9 +244,15 @@ void drawScene() {
     Vector3 backWallV4(maxX, 0.0f, minZ);
     drawQuad(backWallV1, backWallV2, backWallV3, backWallV4);
 
-    for (const Box& box : boxes) {
+#if USING_GRAPHICS_MULTITHREADING
+    parallel_for_each(begin(boxes), end(boxes), [&](const Box& box) {
         drawBox(box);
-    }
+    });
+#else
+    for (const Box* box : boxes) {
+        drawBox(box);
+}
+#endif
 }
 
 // called by GLUT - displays the scene
@@ -289,7 +300,7 @@ void mouse(int button, int state, int x, int y) {
         for (size_t i = 0; i < boxes.size(); ++i) {
             if (rayBoxIntersection(cameraPosition, rayDirection, boxes[i])) {
                 // Calculate the distance between the camera and the intersected box
-                Vector3 diff = boxes[i].position - cameraPosition;
+                Vector3 diff = boxes[i]->position - cameraPosition;
                 float distance = diff.length();
 
                 // Update the clicked box index if this box is closer to the camera
@@ -312,10 +323,16 @@ void keyboard(unsigned char key, int x, int y) {
     const float impulseMagnitude = 20.0f; // Upward impulse magnitude
 
     if (key == ' ') { // Spacebar key
+        for (Box* box : boxes) {
+            box->velocity.y += impulseMagnitude;
+        }
+    }
+
+    /*if (key == ' ') { // Spacebar key
         for (Box& box : boxes) {
             box.velocity.y += impulseMagnitude;
         }
-    }
+    }*/
 
     if (key == 'w')
     {
@@ -325,6 +342,11 @@ void keyboard(unsigned char key, int x, int y) {
     if (key == 't')
     {
         Tracker::PrintAllBytesAlloced();
+    }
+
+    if (key == 's')
+    {
+        cout << "\nBox size: " << sizeof(Box) << "\n";
     }
 }
 
