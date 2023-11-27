@@ -5,6 +5,7 @@ using namespace std;
 //#ifdef DEBUG
 void* operator new(size_t size)
 {
+	//Debugging
 	//cout << "\n-------------\n";
 	//cout << "\nGlobal new being used\n";
 	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
@@ -41,6 +42,7 @@ void* operator new(size_t size)
 
 void* operator new(size_t size, Tracker::Type type)
 {
+	//Debugging
 	// << "\n-------------\n";
 	//cout << "\nGlobal new being used\n";
 	size_t totalBytes = size + sizeof(Header) + sizeof(Footer);
@@ -77,6 +79,7 @@ void* operator new(size_t size, Tracker::Type type)
 
 void operator delete(void* pMem)
 {
+	//Debugging
 	//cout << "\n-------------\n";
 	//cout << "\nglobal delete being used\n";
 	Header* pHeader = (Header*)((char*)pMem - sizeof(Header));
@@ -104,6 +107,7 @@ void operator delete(void* pMem)
 		cout << "\nHeader checkValue does not match expected value for " << pHeader << ", something has gone wrong\n";
 	else
 	{
+		//Debugging
 		//cout << "\nHeader " << pHeader << " checkValue correct, freeing memory...\n";
 		Tracker::RemoveBytesAlloced(sizeof(pHeader), pHeader);
 

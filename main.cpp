@@ -15,8 +15,9 @@
 #include "Vector3.h"
 #include "Box.h"
 #include "MemPool.h"
-#include "Definitions.h"
+#include "Constants.h"
 #include "PhysicsManager.h"
+#include "Quad.h"
 
 using namespace std::chrono;
 using namespace concurrency;
@@ -27,9 +28,11 @@ const float gravity = -19.81f;
 
 //Will use this again if I can find a solution to the memory pool exception
 //MemPool* boxPool = new MemPool(sizeof(Box), NUMBER_OF_BOXES);
+
 std::vector<Box*> boxes;
 
 PhysicsManager* physManager = new PhysicsManager(-19.81, 0.0f);
+Quad* quadTree = new Quad(minX, maxX, minZ, maxZ, 5.0f);
 
 void initScene(int boxCount) {
     for (int i = 0; i < boxCount; ++i) {
@@ -39,18 +42,14 @@ void initScene(int boxCount) {
         Box* box = new Box();  
 
         // Assign random x, y, and z positions within specified ranges
-        //box.genRandPos(box);
         box->genRandPos(box);
 
-        //box.setBoxSize(box, 1.0f, 1.0f, 1.0f);
         box->setBoxSize(box, 1.0f, 1.0f, 1.0f);
 
         // Assign random x-velocity between -1.0f and 1.0f
-        //box.genRandVel(box);
         box->genRandVel(box);
 
         // Assign a random color to the box
-        //box.genRandCol(box);
         box->genRandCol(box);
 
         boxes.push_back(box);
@@ -152,11 +151,30 @@ void updatePhysics() {
 
         physManager->CheckBoundsCollision(box->position, box->velocity, box->size);
 
+        quadTree->Insert(box);
+
         // Check for collisions with other boxes
-        for (Box* other : boxes) {
+
+        //std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
+
+        /*for (Box* other : boxes) {
             if (box == other) continue;
             
             if(physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
+                resolveCollision(box, other);
+                //This doesn't work for some reason I don't understand
+                //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
+                break;
+            }
+        }*/
+    });
+    parallel_for_each(begin(boxes), end(boxes), [&](Box* box) {
+        std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
+
+        for (Box* other : boxesInQuad) {
+            if (box == other) continue;
+
+            if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
                 resolveCollision(box, other);
                 //This doesn't work for some reason I don't understand
                 //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
@@ -172,8 +190,24 @@ void updatePhysics() {
 
         physManager->CheckBoundsCollision(box->position, box->velocity, box->size);
 
+        quadTree->Insert(box);
+
         // Check for collisions with other boxes
-        for (Box* other : boxes) {
+        /*for (Box* other : boxes) {
+            if (box == other) continue;
+
+            if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
+                resolveCollision(box, other);
+                //This doesn't work for some reason I don't understand
+                //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
+                break;
+            }
+        }*/
+    }
+    for (Box* box : boxes) {
+        std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
+
+        for (Box* other : boxesInQuad) {
             if (box == other) continue;
 
             if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
@@ -275,6 +309,8 @@ void idle() {
 
     updatePhysics();
 
+    quadTree->UpdateQuadtree();
+
     // tell glut to draw - note this will cap this function at 60 fps
     glutPostRedisplay();
 }
@@ -328,12 +364,6 @@ void keyboard(unsigned char key, int x, int y) {
         }
     }
 
-    /*if (key == ' ') { // Spacebar key
-        for (Box& box : boxes) {
-            box.velocity.y += impulseMagnitude;
-        }
-    }*/
-
     if (key == 'w')
     {
         Tracker::WalkTheHeap();
@@ -347,6 +377,14 @@ void keyboard(unsigned char key, int x, int y) {
     if (key == 's')
     {
         cout << "\nBox size: " << sizeof(Box) << "\n";
+    }
+}
+
+void DeleteScene()
+{
+    for (Box* box : boxes)
+    {
+        delete(box);
     }
 }
 
@@ -374,11 +412,10 @@ int main(int argc, char** argv) {
     glutDisplayFunc(display);
     glutIdleFunc(idle);
 
-    //MemPool* pool = new MemPool(10, 5);
-
     // it will stick here until the program ends. 
     glutMainLoop();
 
-    //pool->DeletePool();
+    DeleteScene();
+
     return 0;
 }

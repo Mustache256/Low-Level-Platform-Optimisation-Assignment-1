@@ -186,7 +186,7 @@
     <ClInclude Include="Box.h" />
     <ClInclude Include="Callbacks.h" />
     <ClInclude Include="Common.h" />
-    <ClInclude Include="Definitions.h" />
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="MemPool.h" />
     <ClInclude Include="PhysicsManager.h" />
