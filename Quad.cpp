@@ -11,7 +11,7 @@ Quad::Quad(float minSize)
 
 	minQuadSize = minSize;
 
-	if (abs(topLeftX - botRightX) <= 1 && abs(topLeftZ - botRightZ) <= 1)
+	if (abs(topLeftX - botRightX) <= minSize && abs(topLeftZ - botRightZ) <= minSize)
 	{
 		topLeftTree = NULL;
 		topRightTree = NULL;
@@ -39,7 +39,7 @@ Quad::Quad(float topLeft_x, float topleft_z, float botRight_x, float botRight_z,
 
 	minQuadSize = minSize;
 
-	if (abs(topLeftX - botRightX) <= 1 && abs(topLeftZ - botRightZ) <= 1)
+	if (abs(topLeftX - botRightX) <= minSize && abs(topLeftZ - botRightZ) <= minSize)
 	{
 		topLeftTree = NULL;
 		topRightTree = NULL;
@@ -57,6 +57,19 @@ Quad::Quad(float topLeft_x, float topleft_z, float botRight_x, float botRight_z,
 
 }
 
+Quad::~Quad()
+{
+	delete topLeftTree;
+	delete topRightTree;
+	delete botLeftTree;
+	delete botRightTree;
+
+	topLeftTree = nullptr;
+	topRightTree = nullptr;
+	botLeftTree = nullptr;
+	botRightTree = nullptr;
+}
+
 void Quad::Insert(Box* box)
 {
 	if (box == NULL)
@@ -68,7 +81,6 @@ void Quad::Insert(Box* box)
 		return;
 	}
 		
-
 	if (abs(topLeftX - botRightX) <= minQuadSize && abs(topLeftZ - botRightZ) <= minQuadSize)
 	{
 		for (Box* boxInVector : boxesInQuad)
@@ -214,7 +226,13 @@ void Quad::UpdateQuadtree()
 		botRightTree->UpdateQuadtree();
 }
 
-void* Quad::operator new(size_t size)
+/*void* Quad::operator new(size_t size)
 {
-	return ::operator new(size, Tracker::Type::quad);
+	return new();
+	//return ::operator new(size, Tracker::Type::quad);
 }
+
+void Quad::operator delete(void* pMem)
+{
+	return 
+}*/

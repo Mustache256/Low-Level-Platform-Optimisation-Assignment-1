@@ -169,6 +169,7 @@ void updatePhysics() {
         }*/
     });
     parallel_for_each(begin(boxes), end(boxes), [&](Box* box) {
+
         std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
 
         for (Box* other : boxesInQuad) {

@@ -33,6 +33,7 @@ public:
 	float AddPositionsAndDivide(float pos1, float pos2);
 	void UpdateQuadtree();
 
-	void* operator new(size_t size);
+	//void* operator new(size_t size);
+	//void operator delete(void* pMem);
 };
 
