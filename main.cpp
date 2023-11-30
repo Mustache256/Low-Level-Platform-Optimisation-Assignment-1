@@ -32,6 +32,9 @@ const float gravity = -19.81f;
 std::vector<Box*> boxes;
 
 PhysicsManager* physManager = new PhysicsManager(-19.81, 0.0f);
+
+bool usingQuadtree = USING_QUADTREE;
+
 Quad* quadTree = new Quad(minX, maxX, minZ, maxZ, 5.0f);
 
 void initScene(int boxCount) {
@@ -150,39 +153,44 @@ void updatePhysics() {
         physManager->ApplyVelocityChange(box->position, box->velocity);
 
         physManager->CheckBoundsCollision(box->position, box->velocity, box->size);
-
-        quadTree->Insert(box);
-
-        // Check for collisions with other boxes
-
-        //std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
-
-        /*for (Box* other : boxes) {
-            if (box == other) continue;
-            
-            if(physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
-                resolveCollision(box, other);
-                //This doesn't work for some reason I don't understand
-                //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
-                break;
-            }
-        }*/
-    });
-    parallel_for_each(begin(boxes), end(boxes), [&](Box* box) {
-
-        std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
-
-        for (Box* other : boxesInQuad) {
-            if (box == other) continue;
-
-            if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
-                resolveCollision(box, other);
-                //This doesn't work for some reason I don't understand
-                //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
-                break;
-            }
+    
+        if (usingQuadtree)
+        {
+            quadTree->Insert(box);
         }
+        else
+        {
+            // Check for collisions with other boxes
+            for (Box* other : boxes) {
+                if (box == other) continue;
+
+                if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
+                    resolveCollision(box, other);
+                    //This doesn't work for some reason I don't understand
+                    //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
+                    break;
+                }
+            }
+        } 
     });
+    if (usingQuadtree)
+    {
+        parallel_for_each(begin(boxes), end(boxes), [&](Box* box) {
+
+            std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
+
+            for (Box* other : boxesInQuad) {
+                if (box == other) continue;
+
+                if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
+                    resolveCollision(box, other);
+                    //This doesn't work for some reason I don't understand
+                    //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
+                    break;
+                }
+            }
+            });
+    }
 #else
     for (Box* box : boxes) {
         physManager->ApplyGravity(box->velocity.y);
@@ -191,31 +199,39 @@ void updatePhysics() {
 
         physManager->CheckBoundsCollision(box->position, box->velocity, box->size);
 
-        quadTree->Insert(box);
+        if (usingQuadtree)
+        {
+            quadTree->Insert(box);
+        } 
+        else
+        {
+            // Check for collisions with other boxes
+            for (Box* other : boxes) {
+                if (box == other) continue;
 
-        // Check for collisions with other boxes
-        /*for (Box* other : boxes) {
-            if (box == other) continue;
-
-            if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
-                resolveCollision(box, other);
-                //This doesn't work for some reason I don't understand
-                //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
-                break;
+                if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
+                    resolveCollision(box, other);
+                    //This doesn't work for some reason I don't understand
+                    //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
+                    break;
+                }
             }
-        }*/
+        } 
     }
-    for (Box* box : boxes) {
-        std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
+    if (usingQuadtree)
+    {
+        for (Box* box : boxes) {
+            std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
 
-        for (Box* other : boxesInQuad) {
-            if (box == other) continue;
+            for (Box* other : boxesInQuad) {
+                if (box == other) continue;
 
-            if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
-                resolveCollision(box, other);
-                //This doesn't work for some reason I don't understand
-                //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
-                break;
+                if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
+                    resolveCollision(box, other);
+                    //This doesn't work for some reason I don't understand
+                    //physManager->ResolveOtherCollision(box.position, box.velocity, other.position, other.velocity);
+                    break;
+                }
             }
         }
     }
@@ -308,9 +324,15 @@ void display() {
 void idle() {
     physManager->UpdateDeltaTime();
 
+    //auto start = chrono::steady_clock::now();
     updatePhysics();
+    //auto end = chrono::steady_clock::now();
+    //chrono::duration<double> elapsedSeconds{end - start};
+    //cout << "Time taken to calculate physics: " << elapsedSeconds.count() << "\n";
 
+#if USING_QUADTREE
     quadTree->UpdateQuadtree();
+#endif
 
     // tell glut to draw - note this will cap this function at 60 fps
     glutPostRedisplay();

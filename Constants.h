@@ -21,3 +21,5 @@
 #define USING_PHYSICS_MULTITHREADING true;
 //Toggle to enable and disable graphics (specifically box) rendering multithreading 
 #define USING_GRAPHICS_MULTITHREADING false;
+//Toggle using quadtree for physics collision detection
+#define USING_QUADTREE false;

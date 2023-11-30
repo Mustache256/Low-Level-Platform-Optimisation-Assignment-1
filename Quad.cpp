@@ -226,13 +226,7 @@ void Quad::UpdateQuadtree()
 		botRightTree->UpdateQuadtree();
 }
 
-/*void* Quad::operator new(size_t size)
+void* Quad::operator new(size_t size)
 {
-	return new();
-	//return ::operator new(size, Tracker::Type::quad);
+	return ::operator new(size, Tracker::Type::quad);
 }
-
-void Quad::operator delete(void* pMem)
-{
-	return 
-}*/
