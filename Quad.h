@@ -8,15 +8,19 @@
 
 class Quad
 {
+	//Co-ordinates of top left and bottom right corners of the quad tree
 	float topLeftX;
 	float topLeftZ;
 	float botRightX;
 	float botRightZ;
 
+	//Minimum size a quad can be
 	float minQuadSize;
 
+	//Boxes currently within a quad
 	std::vector<Box*> boxesInQuad;
 
+	//Pointers to the children of this quad, creates the tree
 	Quad* topLeftTree;
 	Quad* topRightTree;
 	Quad* botLeftTree;

@@ -31,10 +31,13 @@ const float gravity = -19.81f;
 
 std::vector<Box*> boxes;
 
+//Creating physics manager
 PhysicsManager* physManager = new PhysicsManager(-19.81, 0.0f);
 
+//Using bool rather than constant definition as I need check inside of an if statement that already uses a constant definition
 bool usingQuadtree = USING_QUADTREE;
 
+//Creating a quad tree
 Quad* quadTree = new Quad(minX, maxX, minZ, maxZ, 5.0f);
 
 void initScene(int boxCount) {
@@ -147,15 +150,18 @@ void resolveCollision(Box* a, Box* b) {
 // update the physics: gravity, collision test, collision resolution
 void updatePhysics() {
 #if USING_PHYSICS_MULTITHREADING
+  //Parallel for each loop using the parallel processing library for physics multithreading
     parallel_for_each(begin(boxes), end(boxes), [&](Box* box) {
+        //Using the physcis manager to update box attributes resluting from influence of gravity, time and colliding with teh edges of the scene
         physManager->ApplyGravity(box->velocity.y);
 
         physManager->ApplyVelocityChange(box->position, box->velocity);
 
         physManager->CheckBoundsCollision(box->position, box->velocity, box->size);
-    
+        
         if (usingQuadtree)
-        {
+         {
+          //Add box to quad tree
             quadTree->Insert(box);
         }
         else
@@ -163,7 +169,7 @@ void updatePhysics() {
             // Check for collisions with other boxes
             for (Box* other : boxes) {
                 if (box == other) continue;
-
+                //Using physics manager to check collisions
                 if (physManager->CheckOtherCollision(box->position, box->size, other->position, other->size)) {
                     resolveCollision(box, other);
                     //This doesn't work for some reason I don't understand
@@ -177,8 +183,10 @@ void updatePhysics() {
     {
         parallel_for_each(begin(boxes), end(boxes), [&](Box* box) {
 
+          //Findling all boxes in same quad as current box
             std::vector<Box*> boxesInQuad = quadTree->Search(box->position.x, box->position.z);
 
+            //Chekcing for collision against boxes in same quad
             for (Box* other : boxesInQuad) {
                 if (box == other) continue;
 
@@ -322,6 +330,7 @@ void display() {
 // see https://www.opengl.org/resources/libraries/glut/spec3/node63.html#:~:text=glutIdleFunc
 // NOTE this may be capped at 60 fps as we are using glutPostRedisplay(). If you want it to go higher than this, maybe a thread will help here. 
 void idle() {
+  //Updating deltaTime through physics manager
     physManager->UpdateDeltaTime();
 
     //auto start = chrono::steady_clock::now();
@@ -331,6 +340,7 @@ void idle() {
     //cout << "Time taken to calculate physics: " << elapsedSeconds.count() << "\n";
 
 #if USING_QUADTREE
+    //Updates quad tree, clearing out all the boxes from it
     quadTree->UpdateQuadtree();
 #endif
 
@@ -389,17 +399,14 @@ void keyboard(unsigned char key, int x, int y) {
 
     if (key == 'w')
     {
+      //Can walk the heap by pressing w
         Tracker::WalkTheHeap();
     }
 
     if (key == 't')
     {
+      //Can output all bytes allocated by pressing t
         Tracker::PrintAllBytesAlloced();
-    }
-
-    if (key == 's')
-    {
-        cout << "\nBox size: " << sizeof(Box) << "\n";
     }
 }
 

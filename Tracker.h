@@ -20,6 +20,7 @@ public:
 
 	static void WalkTheHeap();
 
+	//Tracker types enum
 	enum Type
 	{
 		base,
@@ -31,7 +32,10 @@ public:
 	};
 
 private:
+	//Array that stores bytes allocated for each tracker type
 	static size_t bytesAlloced[count];
+
+	//Header pointers for setting up linked list and finding beginning of list
 	static Header* pPrevHeader;
 	static Header* pFirstHeader;
 };

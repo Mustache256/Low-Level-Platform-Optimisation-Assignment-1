@@ -2,17 +2,20 @@
 
 PhysicsManager::PhysicsManager(float newGravity, const float newFloorY)
 {
+	//Assigns gravity and floorY values
 	gravity = newGravity;
 	floorY = newFloorY;
 }
 
 void PhysicsManager::ApplyGravity(float& objY)
 {
+	//Applying force of gravity to object
 	objY += gravity * deltaTime;
 }
 
 void PhysicsManager::ApplyVelocityChange(Vector3& objPos, Vector3& objVel)
 {
+	//Applies velocity change over time to object
 	objPos.x += objVel.x * deltaTime;
 	objPos.y += objVel.y * deltaTime;
 	objPos.z += objVel.z * deltaTime;
@@ -20,6 +23,7 @@ void PhysicsManager::ApplyVelocityChange(Vector3& objPos, Vector3& objVel)
 
 void PhysicsManager::CheckBoundsCollision(Vector3& objPos, Vector3& objVel, Vector3& objSize)
 {
+	//Checking for object collision with floor, if colliding apply response force to object
 	if (objPos.y - objSize.y / 2.0f < floorY)
 	{
 		objPos.y = floorY + objSize.y / 2.0f;
@@ -27,6 +31,7 @@ void PhysicsManager::CheckBoundsCollision(Vector3& objPos, Vector3& objVel, Vect
 		objVel.y = -objVel.y * dampening;
 	}
 
+	//Cehck if object is colliding with sizes of scene, if colliding aplly response force to object
 	if (objPos.x - objSize.x / 2.0f < minX || objPos.x + objSize.x / 2.0f > maxX)
 	{
 		objVel.x = -objVel.x;
@@ -40,6 +45,7 @@ void PhysicsManager::CheckBoundsCollision(Vector3& objPos, Vector3& objVel, Vect
 
 bool PhysicsManager::CheckOtherCollision(Vector3& objPos, Vector3& objSize, Vector3& otherPos, Vector3& otherSize)
 {
+	//Checks for collision between 2 objects and returns true if colliding
 	return (std::abs(objPos.x - otherPos.x) * 2 < (objSize.x + otherSize.x)) &&
 		(std::abs(objPos.y - otherPos.y) * 2 < (objSize.y + otherSize.y)) &&
 		(std::abs(objPos.z - otherPos.z) * 2 < (objSize.z + otherSize.z));
@@ -81,6 +87,7 @@ void PhysicsManager::ResolveOtherCollision(Vector3& objPos, Vector3& objVel, Vec
 	otherVel.z -= j * normal.z;
 }
 
+//Called in game loop to update deltaTime value
 void PhysicsManager::UpdateDeltaTime()
 {
 	static auto last = std::chrono::steady_clock::now();
@@ -92,5 +99,6 @@ void PhysicsManager::UpdateDeltaTime()
 
 void* PhysicsManager::operator new(size_t size)
 {
+	//Overwritten class specific new so that all physics managers are tracked by tracker type physics
 	return ::operator new(size, Tracker::Type::physics);
 }
